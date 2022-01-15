@@ -1,0 +1,32 @@
+## Interface: 90105
+## OptionalDependencies: Ace3
+## SavedVariables: EnhancedModelSceneSV
+
+libs\LibStub\LibStub.lua
+libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+libs\AceAddon-3.0\AceAddon-3.0.xml
+libs\AceConsole-3.0\AceConsole-3.0.xml
+libs\AceComm-3.0\AceComm-3.0.xml
+libs\AceSerializer-3.0\AceSerializer-3.0.xml
+
+ActorTemplate.xml
+
+EnhancedModelScene.lua
+Phasor.lua
+ModelCenters.lua
+CameraMixin.lua
+Matrix.lua
+ActorMixin.lua
+ActorConfig.lua
+Centering.lua
+Repeatable.lua
+Commands.lua
+modelfiles.lua
+ModelDB.lua
+FileMap.lua
+Immersion.lua
+Bucket.lua
+Reticle.lua
+Script.lua
+
+finish.lua

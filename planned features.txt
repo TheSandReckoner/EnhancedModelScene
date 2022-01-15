@@ -1,0 +1,22 @@
+set animation by name
+emotes (animations with idle fallback)
+customizable animation looping (ie. change animation variant probability)
+command scripting, for static or dynamic playback, and unit testing
+tiling function with custom orientation
+arc tiling options (for backdrops)
+action-bar-like visual reference of actors, linkages, actors awaiting a model reference
+tools and tooltips for the above, to show more info, to find actors lost by scale or view changes, etc
+creatureID cross-reference to help address unusability of multi-appearance files
+options to change how panning and rotation work - rotate around camera; lock to world, reference model, camera, or camera-to-actor axes
+get config sharing working for import/export and multiple-users
+commands to change lighting
+fix the misleading axis test object orientation
+improve model searching
+undo function for accidentally affecting the wrong model
+saving and better loading appearances from barbershop (including sync assistant)
+more actor linkage options, eg. animation without connected position/orientation
+better handling of which commands to sync (direct, adjust, none)
+unify model specification (unit, creature, file syntax for one argument)
+protect against crashing from invalid file IDs (check DB, check game version)
+specify actors by labels in commands
+camera tracking of actors

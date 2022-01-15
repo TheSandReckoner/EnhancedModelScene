@@ -1,0 +1,20 @@
+<Bindings>
+	<Binding header="ENHANCEDMODELSCENE" name="EMS_MOVEFORWARD" runOnUp="true">
+		EnhancedModelScene.Immersion:RunCommand("MOVEFORWARD", keystate)
+	</Binding>
+	<Binding name="EMS_MOVEBACKWARD" runOnUp="true">
+		EnhancedModelScene.Immersion:RunCommand("MOVEBACKWARD", keystate)
+	</Binding>
+	<Binding name="EMS_TURNLEFT" runOnUp="true">
+		EnhancedModelScene.Immersion:RunCommand("TURNLEFT", keystate)
+	</Binding>
+	<Binding name="EMS_TURNRIGHT" runOnUp="true">
+		EnhancedModelScene.Immersion:RunCommand("TURNRIGHT", keystate)
+	</Binding>
+	<Binding name="EMS_STRAFELEFT" runOnUp="true">
+		EnhancedModelScene.Immersion:RunCommand("STRAFELEFT", keystate)
+	</Binding>
+	<Binding name="EMS_STRAFERIGHT" runOnUp="true">
+		EnhancedModelScene.Immersion:RunCommand("STRAFERIGHT", keystate)
+	</Binding>
+</Bindings>

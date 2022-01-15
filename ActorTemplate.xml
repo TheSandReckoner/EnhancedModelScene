@@ -1,0 +1,21 @@
+<!--
+This Source Code Form is subject to the terms of 
+the Mozilla Public License, v. 2.0. If a copy of 
+the MPL was not distributed with this file, You 
+can obtain one at https://mozilla.org/MPL/2.0/.
+
+Copyright © 2022 The Sand Reckoner
+Gmail: sandreckoner1063
+-->
+
+<Ui>
+	<Actor name="EMS_ActorTemplate" virtual="true" mixin="EMS_ActorMixin">
+		<Scripts>
+			<OnLoad>        if self.OnLoad         then self:OnLoad()          end</OnLoad>
+			<OnUpdate>      if self.OnUpdate       then self:OnUpdate(elapsed) end</OnUpdate>
+			<OnModelLoading>if self.OnModelLoading then self:OnModelLoading()  end</OnModelLoading>
+			<OnModelLoaded> if self.OnModelLoaded  then self:OnModelLoaded()   end</OnModelLoaded>
+			<OnAnimFinished>if self.OnAnimFinished then self:OnAnimFinished()  end</OnAnimFinished>
+		</Scripts>
+	</Actor>
+</Ui>
