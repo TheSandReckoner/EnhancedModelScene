@@ -64,10 +64,10 @@ end
 
 
 function BucketMixin:AddEntry(...)
-	print("adding entry to bucket via generic AddEntry")
+	--print("adding entry to bucket via generic AddEntry")
 	table.insert(self.entries, {...})
 	
-	print("bucket is ", self:IsRunning() and "" or "not ", "running")
+	--print("bucket is ", self:IsRunning() and "" or "not ", "running")
 
 	if not self:IsRunning() then
 		-- run the timeout function to process this entry, and expect it to start a new interval
@@ -91,7 +91,7 @@ end
 
 
 function BucketMixin:OnTimeout()
-	print("bucket", self.name, "timed out") -- or wasn't running
+	--print("bucket", self.name, "timed out") -- or wasn't running
 	self:on_timeout()
 	
 	-- if bucket isn't empty, it should run for another interval
@@ -170,7 +170,7 @@ do
 			-- send the color and the state
 			EMS:SendSyncCommand(("backdrop %f %f %f"):format(EMS:GetBackdropColor()))
 			
-			self.entries = {}
+			--self.entries = {}
 			
 			if not EMS.backdrop:IsShown() then
 				EMS:SendSyncCommand("backdrop hide")

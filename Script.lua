@@ -17,6 +17,8 @@ if not EMS then return end
 local Script = {}
 EnhancedModelScene.Script = Script
 
+Script.running_scripts = {}
+
 
 function Script:Loop(script)
 	for line in script:gmatch("[^\n]+") do
@@ -33,7 +35,9 @@ function Script:Run(script)
 	-- probably continue to the next line after an error
 	-- Or maybe implement error catching in the loop function?
 	local thread = coroutine.create(function() Script:Loop(script) end)
+	tinsert(self.running_scripts, thread)
 	
+	-- FIXME: error handling
 	function sleep_handler()
 		local status, sleep_duration = coroutine.resume(thread)
 		
@@ -60,9 +64,7 @@ anim 1 0
 
 Script.demo = [[
 -- make sure there are at least three actors
-new
-new
-new
+minactors 3
 hideall
 set 1 player
 undressslot 1 mainhand
@@ -71,9 +73,7 @@ setfile 3 3996870
 OPS 1 0 0 0 -5.5 0 0 1
 OPS 2 0 0 0 0 0 0 .9
 OPS 3 90 0 0 -2.5 -6 .4 .5
-show 1
-show 2
-show 3
+show 1 2 3
 setcamera 250 25 0 0 5 3 5
 sleep 3
 walk 1 1

@@ -17,12 +17,23 @@ if not EMS then return end
 local Commands = {}
 EnhancedModelScene.Commands = Commands
 
+local Splitter = {}
+Commands.Splitter = Splitter
+--[[ Design considerations:
+Splitter is a stateful convenience for retrieving arguments as needed.
+Although I plan to add a batching command (primarily to group simultaneous 
+commands in synced scripts), it might still work as a singleton.
+]]
+
+-- FIXME: in batch command, protect against malformed batched commands causing wrong splits
+
+-- converts each argument to a number, if possible (leaves intact otherwise)
 local function tonumberall(...)
 	local list = {...}
 	
 	-- list might have a hole that would break ipairs
 	for k, v in pairs(list) do
-		list[k] = tonumber(v)
+		list[k] = tonumber(v) or v
 	end
 	
 	return unpack(list, 1, select("#", ...))
@@ -37,15 +48,24 @@ as-is, revise, don't-sync
 
 Commands.commands = {}
 
-function Commands:Dispatch(input)
-	local command, resume_at = EnhancedModelScene:GetArgs(input)
-	--print(command, resume_at)
+function Commands:Dispatch(input, source)
+	Splitter:SetInput(input)
+	local command = Splitter:GetArgs(1)
 	
-	--print("checking for command:", command)
+	local handler = self:GetHandler(command)
 	
-	local handler = self.commands[command]
+	-- TODO: convert everything to use Splitter instead
+	local resume_at = Splitter.index
 	
 	if handler then
+		if type(handler) == "string" then
+			handler = self.commmands[handler]
+		end
+		
+		if not handler then
+			error("Alias pointed to invalid handler")
+		end
+		
 		if type(handler) == "function" then
 			handler(command, input, resume_at)
 		elseif type(handler) == "table" then
@@ -190,7 +210,9 @@ function Commands:Dispatch(input)
 				end
 			end
 			
-			self.Bucket:SendToBucket("backdrop")
+			if source ~= "sync" then
+				self.Bucket:SendToBucket("backdrop")
+			end
 		elseif cmd == "greenscreen" or cmd == "gs" then
 			Commands:Dispatch("backdrop green")
 		elseif cmd == "fov" then
@@ -532,6 +554,25 @@ function Commands:Dispatch(input)
 end
 
 
+function Commands:GetHandler(command)
+	assert(command)
+	
+	local handler = self.commands[command]
+	
+	while type(handler) == "string" do
+		local h = self.commands[handler]
+		
+		if not h then
+			error(("Alias '%s' pointed to missing command"):format(handler))
+		end
+		
+		handler = h
+	end
+	
+	return handler
+end
+
+
 function Commands.commands.moveto(command, input, resume_at)
 	print(command, input, resume_at)
 	
@@ -582,6 +623,66 @@ end
 function Commands:AddMappings(name, handler)
 	self.commands[name] = handler
 	self.commands[name:lower()] = handler
+end
+
+
+function Splitter:Reset()
+	self.input = nil
+	self.index = 1
+end
+
+
+function Splitter:SetInput(input)
+	self:Reset()
+	self.input = input
+end
+
+
+local function pack(...)
+	return {...}, select('#', ...)
+end
+
+
+function Splitter:GetArgs(count)
+	local returns = { EMS:GetArgs(self.input, count, self.index) }
+	self.index = returns[count+1]
+	return unpack(returns, 1, count)
+end
+	
+
+--[[
+function Splitter:GetRemainingArgs()
+	-- use the length of the input string as 
+	-- the expected maximum number of arguments
+	local returns, count = pack(EMS:GetArgs(self.input, #(self.input), self.index))
+	assert()
+	returns[count] = nil
+	return returns, count-1
+end]]
+
+
+local GetArgs = EMS.GetArgs
+
+-- AceConsole's GetArgs implementation doesn't work well
+-- for getting lists, but since it's recursive anyway, 
+-- reimplement the recursion.
+local function GetAllArgs(str, pos)
+	local arg
+	pos = pos or 1
+	arg, pos = GetArgs(nil, str, 1, pos)
+
+	if pos == 1e9 then
+		return arg
+	else
+		return arg, GetAllArgs(str, pos)
+	end
+end
+
+
+function Splitter:GetRemainingArgs()
+	local index = self.index
+	self.index = 1e9
+	return GetAllArgs(self.input, index)
 end
 
 
@@ -808,4 +909,30 @@ Commands:Add({
 		local distance = EMS:GetCameraDistance()
 		print("ypr, xyz, d:", yaw, pitch, roll, x, y, z, distance)
 	end
+})
+
+Commands:Add({
+	name = "Show",
+	aliases = {"ShowActor", "ShowActors"},
+	sync = true,
+	func = function()
+		local list, count = pack(Splitter:GetRemainingArgs())
+		
+		for i = 1, count do
+			local index = tonumber(list[i])
+			EMS:GetActorAtIndex(index):Show()
+		end
+	end,
+})
+
+-- Ensure that at least the specified number of actors exist.
+-- Intended for scripting
+Commands:Add({
+	name = "MinActors",
+	sync = true,
+	func = function()
+		local count = Splitter:GetArgs(1)
+		
+		EMS:EnsureActorCount(tonumber(count))
+	end,
 })

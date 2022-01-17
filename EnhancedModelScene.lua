@@ -75,7 +75,7 @@ end
 
 -- run command locally, and send to group if enabled
 function EnhancedModelScene:DispatchCommand(line)
-	self:DoCommand(line)
+	self:DoCommand(line, "local")
 	self:SendSyncCommand(line)
 end
 
@@ -109,7 +109,7 @@ function EnhancedModelScene:SendSyncCommand(message)
 end
 
 
-function EnhancedModelScene:DoCommand(message)
+function EnhancedModelScene:DoCommand(message, source)
 	local msg = message
 	
 	if msg == "" then
@@ -117,7 +117,7 @@ function EnhancedModelScene:DoCommand(message)
 		return
 	end
 	
-	self.Commands:Dispatch(message)
+	self.Commands:Dispatch(message, source)
 end
 
 
@@ -140,7 +140,14 @@ function EnhancedModelScene:CreateNullActor()
 	local actor = self:NewActor()
 	actor:Hide()
 	--actor.who = "null"
-end	
+end
+
+
+function EnhancedModelScene:EnsureActorCount(count)
+	for i = self:GetNumActors() + 1, count do
+		self:CreateNullActor()
+	end
+end
 
 
 function EnhancedModelScene:ShowActor(index)
@@ -1041,9 +1048,12 @@ function EnhancedModelScene:RebuildActors(config, full)
 	
 		local index = actor.index
 		
+		self:EnsureActorCount(index)
+		--[[
 		for i = self:GetNumActors() + 1, index do
 			self:CreateNullActor()
 		end
+		]]
 		
 		local target = self:GetActorAtIndex(index)
 		
@@ -1099,6 +1109,8 @@ function EnhancedModelScene:RebuildActors(config, full)
 				end
 			end
 		end
+		
+		target:Show() -- TODO: unless rebuilding a hidden actor
 	end
 end
 
@@ -1393,7 +1405,7 @@ function EnhancedModelScene:OnCommReceived(prefix, message, channel, who)
 	if prefix == SYNC_PREFIX and self.allow_sync then
 		-- FIXME: may want to test commands by whispering to self, but not the normal intent of run_via_sync
 		if who ~= UnitName("player") or self.run_via_sync then
-			self:DoCommand(message)
+			self:DoCommand(message, "sync")
 		end
 	end
 end
