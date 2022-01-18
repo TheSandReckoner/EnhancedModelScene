@@ -140,6 +140,48 @@ function ActorMixin:SetScaledPosition(x, y, z)
 end
 
 
+function ActorMixin:GetRefPosition()
+	return self:ConvertToWorld(self.reference_point.space, unpack(self.reference_point.xyz))
+end
+
+
+-- Places the actor's reference point at the specified world coordinates
+function ActorMixin:SetRefPosition(wx, wy, wz)
+	if self.reference_point then
+		local rx, ry, rz = unpack(self.reference_point.xyz)
+		local space = self.reference_point.space
+		
+		-- shift from where it is now, assuming calculable, 
+		-- or generate raw position from scratch?
+		-- Option 1: Assume current position is valid, calculate 
+		-- offset from reference point's current world position 
+		-- to the specified location, and add that offset to 
+		-- its API position (what about space scaling?)
+		-- Option 2: Determine offset from reference point to 
+		-- API position, and adjust specified coordinates by 
+		-- that amount
+		
+		local wx0, wy0, wz0 = self:ConvertToWorld(space, rx, ry, rz)
+		local dx, dy, dz = wx-wx0, wy-wy0, wz-wz0
+		
+		local x, y, z = self:GetScaledPosition()
+		self:SetScaledPosition(x+dx, y+dy, z+dz)
+	else
+		self:SetScaledPosition(wx, wy, wz)
+	end
+end
+
+
+function ActorMixin:SetReferencePoint(space, x, y, z)
+	self.reference_point = { space = space, xyz = {x, y, z}}
+end
+
+
+function ActorMixin:ClearReferencePoint()
+	self.reference_point = nil
+end
+
+
 function ActorMixin:SetCenterPosition(x, y, z)
 	local cx, cy, cz = self:GetScaledCenterOffset()
 	self:SetScaledPosition(x - cx, y - cy, z - cz)
@@ -451,6 +493,25 @@ function ActorMixin:GetPoint(space, point)
 end
 
 
+function ActorMixin:ConvertToWorld(space, x, y, z)
+	if space == "shift" then
+		local scale = self:GetScale()
+		local px, py, pz = self:GetScaledPosition()
+		return px + scale * x, py + scale * y, pz + scale * z
+	else
+		local m = self:GetCenterMatrix()
+		
+		if space == "model" then
+			-- shift to center-space
+			local cx, cy, cz = self:GetRawCenter()
+			x, y, z = x - cx, y - cy, z - cz
+		end
+		
+		return m:TransformLooseVector(x, y, z)
+	end
+end
+
+
 function ActorMixin:FromCenterSpaceToWorld(x, y, z)
 	return self:GetCenterMatrix():TransformLooseVector(x, y, z)
 end
@@ -459,9 +520,6 @@ end
 function ActorMixin:FromWorldToCenterSpace(x, y, z)
 	return self:GetCenterMatrix():GetInverse():TransformLooseVector(x, y, z)
 end
-
-
-
 
 
 --[[

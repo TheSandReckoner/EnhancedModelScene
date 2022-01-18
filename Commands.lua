@@ -150,9 +150,9 @@ function Commands:Dispatch(input, source)
 		elseif cmd == "hide" then
 			local index = tonumber(remainder)
 			self:GetActorAtIndex(index):Hide()
-		elseif cmd == "show" then
+		--[[elseif cmd == "show" then
 			local index = tonumber(remainder)
-			self:GetActorAtIndex(index):Show()
+			self:GetActorAtIndex(index):Show()]]
 		elseif cmd == "hideall" then
 			for i = 1, self:GetNumActors() do
 				self:GetActorAtIndex(i):Hide()
@@ -794,7 +794,7 @@ Commands:Add({
 })
 
 Commands:Add({
-	name = "SetAmbientLight",
+	name = "SetAmbientColor",
 	sync = true,
 	func = function(command, input, resume_at)
 		local r, g, b = EMS:GetArgs(input, 3, resume_at)
@@ -802,6 +802,36 @@ Commands:Add({
 		EMS:SetLightAmbientColor(r, g, b)
 	end,
 })
+
+Commands:Add({
+	name = "SetDiffuseColor",
+	sync = true,
+	func = function()
+		local r, g, b = tonumberall(Splitter:GetArgs(3))
+		EMS:SetLightDiffuseColor(r, g, b)
+	end,
+})
+
+Commands:Add({
+	name = "SetLightDirection",
+	sync = true,
+	func = function()
+		local x, y, z = tonumberall(Splitter:GetArgs(3))
+		EMS:SetLightDirection(x, y, z)
+	end,
+})
+
+Commands:Add({
+	name = "SetLightPosition",
+	sync = true,
+	func = function()
+		local x, y, z = tonumberall(Splitter:GetArgs(3))
+		EMS:SetLightPosition(x, y, z)
+	end,
+})
+
+		
+-- FIXME: add light settings to SceneState
 
 Commands:Add({
 	name = "SetOPS",
