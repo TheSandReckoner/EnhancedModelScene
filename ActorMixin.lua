@@ -451,7 +451,10 @@ function ActorMixin:GetActiveBoundingBoxCenter()
 	return (x1+x2)/2, (y1+y2)/2, (z1+z2)/2
 end
 
-
+-- NOTE: SetUseCenterForOrigin does change the center of rotation, 
+-- but not as expected (still not rotating around origin; appears 
+-- to move the center of rotation somewhere within the XY plane 
+-- that goes through the center of the active bounding box.
 
 function ActorMixin:GetPointInModelSpace(point)
 	point = point:lower()
@@ -606,24 +609,44 @@ end
 
 function ActorMixin:SetModelByCreatureDisplayID(...)
 	self:SetModelSource("creatureID", ...)
+	
+	if self.run_dev_scripts then
+		self:OnModelChange()
+	end
+	
 	return getmetatable(self).__index.SetModelByCreatureDisplayID(self, ...)
 end
 
 
 function ActorMixin:SetModelByUnit(...)
 	self:SetModelSource("unit", ...)
+	
+	if self.run_dev_scripts then
+		self:OnModelChange()
+	end
+	
 	return getmetatable(self).__index.SetModelByUnit(self, ...)
 end
 
 
 function ActorMixin:SetModelByFileID(...)
 	self:SetModelSource("file", ...)
+	
+	if self.run_dev_scripts then
+		self:OnModelChange()
+	end
+	
 	return getmetatable(self).__index.SetModelByFileID(self, ...)
 end
 
 
 function ActorMixin:ClearModel(...)
 	self:ClearModelSource()
+	
+	if self.run_dev_scripts then
+		self:OnModelChange()
+	end
+	
 	return getmetatable(self).__index.ClearModel(self, ...)
 end
 
@@ -657,3 +680,37 @@ function ActorMixin:OnLoad()
 end
 ]]
 
+
+function ActorMixin:OnAnimFinished()
+	if self.run_dev_scripts then
+		print("OnAnimFinished", GetTime() - self.last_anim_finished or 0)
+		self.last_anim_finished = GetTime()
+	end
+end
+
+
+function ActorMixin:OnModelLoaded()
+	if self.run_dev_scripts then
+		local times = self.new_model_time
+		local t1, t2 = GetTime() - times.GetTime, debugprofilestop() - times.debugprofilestop
+
+		print("OnModelLoaded", self.index or "?", t1, t2)
+
+		self.last_anim_finished = GetTime()
+	end
+end
+
+
+function ActorMixin:OnModelLoading()
+	if self.run_dev_scripts then
+		local times = self.new_model_time
+		local t1, t2 = GetTime() - times.GetTime, debugprofilestop() - times.debugprofilestop
+		print("OnModelLoading", self.index or "?", t1, t2)
+		self.last_anim_finished = GetTime()
+	end
+end
+
+
+function ActorMixin:OnModelChange()
+	self.new_model_time = { GetTime = GetTime(), debugprofilestop = debugprofilestop() }
+end

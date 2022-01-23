@@ -217,6 +217,7 @@ function Centering:OnFirstShow()
 	
 	local x, y, z = a:GetActiveBoundingBoxCenter()
 	
+	-- move the model so its expected center is at the scene origin
 	a:SetPosition(-x, -y, -z)
 	
 	self:SetCameraNearClip(.01)

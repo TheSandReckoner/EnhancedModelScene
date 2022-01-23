@@ -127,6 +127,8 @@ function EnhancedModelScene:NewActor(remainder)
 	-- use a template to get scripts and the mixin
 	local actor = self:CreateActor(nil, "EMS_ActorTemplate")
 	--local actor = Mixin(self:CreateActor(), self.ActorMixin)
+	
+	actor.index = self:GetNumActors()
 
 	self:SetActorTo(actor, remainder)
 	

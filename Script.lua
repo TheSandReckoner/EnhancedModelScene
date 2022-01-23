@@ -22,8 +22,10 @@ Script.running_scripts = {}
 
 function Script:Loop(script)
 	for line in script:gmatch("[^\n]+") do
+		-- TODO: skip if empty or only whitespace
 		-- FIXME: check for a comment character, and maybe add a rem command
-		EMS:DispatchCommand(line)
+		local function f() EMS:DispatchCommand(line, "script") end
+		local status = xpcall(f, geterrorhandler())
 	end
 	
 	print("done executing script")
@@ -48,6 +50,56 @@ function Script:Run(script)
 	
 	sleep_handler()
 end
+
+
+-- returns resume_position, line, line_first, line_last
+function Script.line_iterator(str, pos)
+	-- wont catch a trailing newline unless +1 is added to #str, but 
+	-- we ignore empty lines anyway.
+	if type(pos) == "number" and pos > #str then
+		return nil
+	end
+
+	local i, j, line = string.find(str, "([^\n]*)", pos)
+	
+	-- FIXME: can j be nil?
+	-- need to skip over the newline (starting at the newline would get stuck with empty returns)
+	return j+2, line, i, j
+
+	-- below doesn't work, nil return will make generic for skip
+	-- the block for the last line. Check first instead.
+	--[[
+	if j < #str then
+		-- there's something left, even if it's just a final newline
+		return j+2, line
+	else
+		return nil, line
+	end
+	]]
+end
+
+
+-- Returns a stateless iterator to produce the lines of a script.
+-- This can be used specifically to get the function, or the script string 
+-- and optional start position can be provided to pass through to a for loop
+function Script:GetIterator(...)
+	return self.line_iterator, ...
+end
+
+Script.Lines = Script.GetIterator
+
+
+local Commands = ems.Commands
+
+Commands:Add({
+	name = "ScriptLabel",
+	aliases = {"Label"},
+	sync = false,
+	func = function(self)
+		local name = self:GetArgs(1)
+		self:GetScript():AddLabel(name)
+	end,
+})
 
 
 Script.test_script = [[

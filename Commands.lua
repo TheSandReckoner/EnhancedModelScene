@@ -57,19 +57,19 @@ function Commands:Dispatch(input, source)
 	-- TODO: convert everything to use Splitter instead
 	local resume_at = Splitter.index
 	
+	local utils = CreateFromMixins(Splitter)
+	utils:SetInput(input)
+	utils:GetArgs(1)
+	
+	utils.EMS = EMS
+	
 	if handler then
-		if type(handler) == "string" then
-			handler = self.commmands[handler]
-		end
-		
-		if not handler then
-			error("Alias pointed to invalid handler")
-		end
-		
 		if type(handler) == "function" then
-			handler(command, input, resume_at)
+			--handler(command, input, resume_at)
+			handler(utils)
 		elseif type(handler) == "table" then
-			handler.func(command, input, resume_at)
+			--handler.func(command, input, resume_at)
+			handler.func(utils)
 		else
 			error("invalid handler type")
 		end
@@ -573,10 +573,11 @@ function Commands:GetHandler(command)
 end
 
 
-function Commands.commands.moveto(command, input, resume_at)
-	print(command, input, resume_at)
+function Commands.commands.moveto(self) --command, input, resume_at)
+	--print(command, input, resume_at)
 	
-	local point_source, point, object = EMS:GetArgs(input, 3, resume_at)
+	--local point_source, point, object = EMS:GetArgs(input, 3, resume_at)
+	local point_source, point, object = self:GetArgs(3)
 	print(point_source, point, object)
 	
 	local x, y, z
@@ -686,8 +687,9 @@ function Splitter:GetRemainingArgs()
 end
 
 
-function Commands.commands.getpointfrompoint(command, input, resume_at)
-	local basis_index, basis_space, query_index, query_point = EMS:GetArgs(input, 4, resume_at)
+function Commands.commands.getpointfrompoint(self) --command, input, resume_at)
+	--local basis_index, basis_space, query_index, query_point = EMS:GetArgs(input, 4, resume_at)
+	local basis_index, basis_space, query_index, query_point = self:GetArgs(4)
 	
 	basis_index, query_index = tonumber(basis_index), tonumber(query_index)
 	local wx, wy, wz = EMS:GetActorAtIndex(query_index):GetPoint(query_point)
@@ -702,11 +704,10 @@ Commands:Add({
 	name = "SaveBundle",
 	aliases = {"Bundle"},
 	sync = false,
-	func = function(command, input, resume_at)
-		local name, primary, resume_at = EMS:GetArgs(input, 2, resume_at)
-		local followers = { EMS:GetArgs(input, EMS.MAX_ARGS, resume_at) }
+	func = function(self) --command, input, resume_at)
+		local name, primary = self:GetArgs(2)
+		local followers = { self:GetRemainingArgs() }
 		
-		--print("name '", name, "' primary", primary, "resume_at", resume_at)
 		local config = EMS:GetConfigForActors(primary, unpack(followers))
 		config.name = name
 		
